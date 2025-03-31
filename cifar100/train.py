@@ -539,7 +539,6 @@ def main():
             load_checkpoint(model_ema.module, args.resume, use_ema=True)
 
     # setup distributed training
-    # setup distributed training
     if args.distributed:
         if has_apex and use_amp != 'native':
             # Apex DDP preferred unless native amp is activated
@@ -750,7 +749,6 @@ def train_one_epoch(
         if not args.prefetcher:
             input, target = input.cuda(), target.cuda()
             if mixup_fn is not None:
-                print("########################################")
                 input, target = mixup_fn(input, target)
         if args.channels_last:
             input = input.contiguous(memory_format=torch.channels_last)
@@ -758,14 +756,11 @@ def train_one_epoch(
         with amp_autocast():
             output = model(input)
             loss = loss_fn(output, target)
-###############################
         if isinstance(output, (tuple, list)):
                 output = output[0]
 
-        # print("Train_output", output.shape)
-        # print("Train_target", target.shape)
         target=torch.argmax(target, dim=-1)
-        # print("Train_target", target)
+    
         acc1, acc5 = accuracy(output, target, topk=(1, 5))
 
         if args.distributed:
@@ -774,14 +769,13 @@ def train_one_epoch(
             acc5 = reduce_tensor(acc5, args.world_size)
         else:
             reduced_loss = loss.data
-###########-----------------------------
         if not args.distributed:
             losses_m.update(loss.item(), input.size(0))
-#############        
+      
         losses_m.update(reduced_loss.item(), input.size(0))
         top1_m.update(acc1.item(), output.size(0))
         top5_m.update(acc5.item(), output.size(0))
-#---------------------------------------
+
         optimizer.zero_grad()
         if loss_scaler is not None:
             loss_scaler(
@@ -891,10 +885,6 @@ def validate(model, loader, loss_fn, args, amp_autocast=suppress, log_suffix='')
             loss = loss_fn(output, target)
             functional.reset_net(model)
 
-            ################
-            # print("Test_output", output.shape)
-            # print("Test_target", target.shape)
-            ##-----------------------
             acc1, acc5 = accuracy(output, target, topk=(1, 5))
 
             if args.distributed:

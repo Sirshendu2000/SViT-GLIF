@@ -53,12 +53,12 @@ class MLP(nn.Module):
         x = self.fc1_linear(x_)
         x = self.fc1_bn(x.transpose(-1, -2)).transpose(-1, -2).reshape(T, B, N, self.c_hidden).contiguous()
         x = self.fc1_lif(x)
-        # x=x.to(torch.float32)
+
 
         x = self.fc2_linear(x.flatten(0,1))
         x = self.fc2_bn(x.transpose(-1, -2)).transpose(-1, -2).reshape(T, B, N, C).contiguous()
         x = self.fc2_lif(x)
-        # x=x.to(torch.float32)
+
         return x
 
 
@@ -95,9 +95,7 @@ class SSA(nn.Module):
         x_for_qkv = x.flatten(0, 1)  # TB, N, C
         q_linear_out = self.q_linear(x_for_qkv)  # [TB, N, C]
         q_linear_out = self.q_bn(q_linear_out. transpose(-1, -2)).transpose(-1, -2).reshape(T, B, N, C).contiguous()
-        # print("q_linear_out",q_linear_out.shape)
         q_linear_out = self.q_lif(q_linear_out)
-        # print("q_linear_out",q_linear_out.dtype)
         q = q_linear_out.reshape(T, B, N, self.num_heads, C//self.num_heads).permute(0, 1, 3, 2, 4).contiguous()
 
         k_linear_out = self.k_linear(x_for_qkv)
@@ -116,7 +114,7 @@ class SSA(nn.Module):
         # print("x",x.shape)
         x = self.attn_lif(x)
         x = x.flatten(0, 1)
-        # x=x.to(torch.float32)
+
         x = self.proj_lif(self.proj_bn(self.proj_linear(x).transpose(-1, -2)).transpose(-1, -2).reshape(T, B, N, C))
         return x, attn
 
@@ -134,10 +132,9 @@ class Block(nn.Module):
         self.mlp = MLP(in_features=dim, hidden_features=mlp_hidden_dim, drop=drop, beta=self.beta)
 
     def forward(self, x):
-        # x=x.to(torch.float32)
+
         x_attn, attn = (self.attn(x))
         x = x + x_attn
-        # x = x + self.attn(x)
         x = x + self.mlp(x)
         return x, attn
 
@@ -179,36 +176,30 @@ class SPS(nn.Module):
         x = self.proj_conv(x.flatten(0, 1)) # have some fire value
         x = self.proj_bn(x).reshape(T, B, -1, H, W).contiguous()
         x = self.proj_lif(x).flatten(0, 1).contiguous()
-        # x=x.to(torch.float32)
-
-        # print("GIFFFFFFFFFFFFFFFFFF")
-        # print(x.shape)
-        # print(x.dtype)
-        # print(x)
 
         x = self.proj_conv1(x)
         x = self.proj_bn1(x).reshape(T, B, -1, H, W).contiguous()
         x = self.proj_lif1(x).flatten(0, 1).contiguous()
-        # x=x.to(torch.float32)
+
 
         x = self.proj_conv2(x)
         x = self.proj_bn2(x).reshape(T, B, -1, H, W).contiguous()
         x = self.proj_lif2(x).flatten(0, 1).contiguous()
-        # x=x.to(torch.float32)
+
         x = self.maxpool2(x)
 
 
         x = self.proj_conv3(x)
         x = self.proj_bn3(x).reshape(T, B, -1, H//2, W//2).contiguous()
         x = self.proj_lif3(x).flatten(0, 1).contiguous()
-        # x=x.to(torch.float32)
+
         x = self.maxpool3(x)
 
         x_feat = x.reshape(T, B, -1, H//4, W//4).contiguous()
         x = self.rpe_conv(x)
         x = self.rpe_bn(x).reshape(T, B, -1, H//4, W//4).contiguous()
         x = self.rpe_lif(x)
-        # x=x.to(torch.float32)
+
         x = x + x_feat
 
         x = x.flatten(-2).transpose(-1, -2)  # T,B,N,C
@@ -226,7 +217,6 @@ class Spikformer(nn.Module):
         self.T = T  # time step
         self.num_classes = num_classes
         self.depths = depths
-        # self.beta=get_beta_schedule(num_diffusion_steps=self.T, name='cosine')      #  ??????????????????????????????????????????????????????????????
         self.beta=beta
         print("beta", self.beta)
         self.attack=attack
@@ -277,16 +267,13 @@ class Spikformer(nn.Module):
         patch_embed = getattr(self, f"patch_embed")
 
         x = patch_embed(x)
-        # print("EMBEDDING & ENCODING DONE!!!!!!")
         for blk in block:
             x, attn = blk(x)
         return x.mean(2), attn
 
     def forward(self, x):
         x = (x.unsqueeze(0)).repeat(self.T, 1, 1, 1, 1)
-        # print(x.dtype)
         x, attn = self.forward_features(x)
-        # x=x.to(torch.float32)
         x = self.head(x.mean(0))
         return x
 
@@ -294,10 +281,6 @@ class Spikformer(nn.Module):
 @register_model
 def spikformer_with_gif(pretrained=False, **kwargs):
     model = Spikformer(
-        # img_size_h=224, img_size_w=224,
-        # patch_size=16, embed_dims=768, num_heads=12, mlp_ratios=4,
-        # in_channels=3, num_classes=1000, qkv_bias=False,
-        # norm_layer=partial(nn.LayerNorm, eps=1e-6), depths=12, sr_ratios=1,
         **kwargs
     )
     model.default_cfg = _cfg()

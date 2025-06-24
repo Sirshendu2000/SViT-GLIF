@@ -28,11 +28,11 @@ wget https://www.cs.toronto.edu/~kriz/cifar-100-python.tar.gz
 tar -xvzf cifar-100-python.tar.gz
 
 
-## miniImageNet
+## MiniImageNet
 
-mkdir -p miniimagenet/dataset
+mkdir -p mini_imagenet/dataset
 
-cd miniimagenet/dataset
+cd mini_imagenet/dataset
 
 wget https://cseweb.ucsd.edu/~weijian/static/datasets/mini-ImageNet/MiniImagenet.tar.gz
 

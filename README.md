@@ -5,6 +5,24 @@ To install all the required dependencies, run the following command in your term
 
 pip install -r requirements.txt
 
+# Dataset Download
+Download the datasets and place them in the corresponding dataset/ directory
+
+cd cifar10
+
+wget -P dataset/ \
+  https://www.cs.toronto.edu/~kriz/cifar-10-python.tar.gz
+
+cd cifar100
+
+wget -P dataset/ \
+  https://www.cs.toronto.edu/~kriz/cifar-100-python.tar.gz
+
+cd mini_imagenet
+
+wget -P dataset/ \
+  https://cseweb.ucsd.edu/~weijian/static/datasets/mini-ImageNet/MiniImagenet.tar.gz
+  
 # Training
 To train and test the SViT-GLIF model on CIFAR10 dataset, run the following commands in terminal
 

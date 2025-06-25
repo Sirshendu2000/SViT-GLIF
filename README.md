@@ -64,4 +64,5 @@ To implement and test the model under adversarial attacks on CIFAR10 dataset, ru
 cd cifar10
 
 python train.py --experiment FGSM
+
 python train.py --experiment PGD
